@@ -169,13 +169,13 @@ impl Server {
     fn receive(&mut self, msg: Message) -> CommsResult<Response> {
         eprintln!("{} received:\n{}", self.name, msg.content());
         match msg.msg_type {
-            Handshake =>  match self.connected_client {
-                    None => {
-                        self.connected_client = Some(msg.load);
-                        Ok(Response::HandshakeReceived)
-                    }
-                    Some(_) => Err(CommsError::UnexpectedHandshake(self.name.clone()))
-                },
+            Handshake => match self.connected_client {
+                None => {
+                    self.connected_client = Some(msg.load);
+                    Ok(Response::HandshakeReceived)
+                }
+                Some(_) => Err(CommsError::UnexpectedHandshake(self.name.clone()))
+            },
 
             MessageType::Post => {
                 if self.post_count == self.limit {
@@ -185,8 +185,7 @@ impl Server {
                     Ok(Response::PostReceived)
                 }
             }
-            MessageType::GetCount => Ok(Response::GetCount(self.post_count))
-
+            MessageType::GetCount => Ok(Response::GetCount(self.post_count)),
         }
     }
 }
