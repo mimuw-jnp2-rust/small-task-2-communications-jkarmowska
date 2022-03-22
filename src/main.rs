@@ -174,7 +174,7 @@ impl Server {
                     self.connected_client = Some(msg.load);
                     Ok(Response::HandshakeReceived)
                 }
-                Some(_) => Err(CommsError::UnexpectedHandshake(self.name.clone()))
+                Some(_) => Err(CommsError::UnexpectedHandshake(self.name.clone())),
             },
 
             MessageType::Post => {
