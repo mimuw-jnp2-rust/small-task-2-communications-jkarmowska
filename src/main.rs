@@ -1,7 +1,9 @@
-use std::collections::HashMap;
-use crate::CommsError::{ConnectionClosed, ConnectionExists, ConnectionNotFound, ServerLimitReached};
+use crate::CommsError::{
+    ConnectionClosed, ConnectionExists, ConnectionNotFound, ServerLimitReached,
+};
 use crate::Connection::{Closed, Open};
 use crate::MessageType::Handshake;
+use std::collections::HashMap;
 
 type CommsResult<T> = Result<T, CommsError>;
 
@@ -27,7 +29,7 @@ impl MessageType {
         match self {
             MessageType::Handshake => "[HANDSHAKE]",
             MessageType::Post => "[POST]",
-            MessageType::GetCount => "[GET COUNT]"
+            MessageType::GetCount => "[GET COUNT]",
         }
     }
 }
@@ -78,12 +80,14 @@ impl Client {
     fn open(&mut self, addr: &str, server: Server) -> CommsResult<()> {
         match self.connections.get(addr) {
             None => {
-                self.connections.insert(addr.to_string(), Connection::Open(server));
-                self.send(addr,
-                          Message {
-                              msg_type: MessageType::Handshake,
-                              load: self.ip.clone(),
-                          },
+                self.connections
+                    .insert(addr.to_string(), Connection::Open(server));
+                self.send(
+                    addr,
+                    Message {
+                        msg_type: MessageType::Handshake,
+                        load: self.ip.clone(),
+                    },
                 )?;
                 Ok(())
             }
@@ -122,10 +126,13 @@ impl Client {
     // Returns the number of closed connections
     #[allow(dead_code)]
     fn count_closed(&self) -> usize {
-        self.connections.iter().filter(|(_, c)| match c {
-            Connection::Open(_) => false,
-            Connection::Closed => true,
-        }).count()
+        self.connections
+            .iter()
+            .filter(|(_, c)| match c {
+                Connection::Open(_) => false,
+                Connection::Closed => true,
+            })
+            .count()
     }
 }
 
@@ -135,7 +142,6 @@ enum Response {
     PostReceived,
     GetCount(u32),
 }
-
 
 #[derive(Clone)]
 struct Server {
@@ -163,17 +169,14 @@ impl Server {
     fn receive(&mut self, msg: Message) -> CommsResult<Response> {
         eprintln!("{} received:\n{}", self.name, msg.content());
         match msg.msg_type {
-            Handshake => {
-                match self.connected_client {
+            Handshake =>  match self.connected_client {
                     None => {
                         self.connected_client = Some(msg.load);
                         Ok(Response::HandshakeReceived)
                     }
-                    Some(_) => {
-                        Err(CommsError::UnexpectedHandshake(self.name.clone()))
-                    }
-                }
-            }
+                    Some(_) => Err(CommsError::UnexpectedHandshake(self.name.clone()))
+                },
+
             MessageType::Post => {
                 if self.post_count == self.limit {
                     Err(CommsError::ServerLimitReached(self.name.clone()))
@@ -182,9 +185,8 @@ impl Server {
                     Ok(Response::PostReceived)
                 }
             }
-            MessageType::GetCount => {
-                Ok(Response::GetCount(self.post_count))
-            }
+            MessageType::GetCount => Ok(Response::GetCount(self.post_count))
+
         }
     }
 }
